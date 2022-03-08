@@ -1,0 +1,26 @@
+.maindiv {
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  top: 100px;
+  margin: auto;
+  width: 400px;
+  height: 500px;
+  background-color: #eee;
+  border-radius: 5px;
+}
+.h5tag {
+  text-align: center;
+}
+.seconddiv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.emailinput {
+  margin-bottom: 45px;
+  padding: 10px;
+  border-radius: 4px;
+  border: none;
+}
