@@ -1,12 +1,43 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import {db,auth} from '../firebase'
+import "./Homepage.css"
 let index;
 export default function Homepage() {
   const inputRef=useRef()
   const[task,setTask]=useState(null)
   const[allTask,setAllTask]=useState([])
   const [edit,setedit]=useState(false)
+  const[user,setuser]=useState(null)
+  
 
 
+useEffect(()=>{
+  let subscriber;
+  let array=[];
+  auth.onAuthStateChanged(user=>{
+  
+    setuser(user)
+    if(user){
+   subscriber= db.collection("todoDatas").doc(user.email).collection("myData").get().then((documents)=>{
+    documents.docs.forEach(item=>{
+      console.log(item.data().task)
+      setAllTask(prevoius=> [...prevoius,{
+        id:item.id,
+       task: item.data().task,
+      }])
+     
+    })
+    
+
+  })
+ 
+    }
+
+  })
+  
+
+  return ()=>subscriber()
+},[])
  const taskset=(e)=>{
     setTask(e.target.value)
   }
@@ -16,11 +47,22 @@ const clearinput=(e)=>{
 const addtask=()=>{
  if(edit){
       let array = [...allTask]
-      console.log(index)
-      array[index]=task
+      console.log(array[index].task)
+      array[index].task=task
       setAllTask(array)
+
+db.collection("todoDatas").doc(user.email).collection("myData").doc(array[index].id).update({task})
       setedit(false)
-  }else{ setAllTask([...allTask,task])
+  }else{ 
+     if(user){ db.collection("todoDatas").doc(user.email).collection("myData").doc()
+    .set({task}).then(()=>{
+      setAllTask(prevoius=>[...prevoius,{task:task}])
+    })
+   }else{
+     window.location.href="/login"
+   }
+   
+
     console.log(allTask)}
    
  
@@ -30,21 +72,28 @@ const addOnEnterKey=(e)=>{
  if(edit){
       let array = [...allTask]
       console.log(index)
-      array[index]=task
+      console.log(allTask)
+      array[index].task=task
       setAllTask(array)
+      
+db.collection("todoDatas").doc(user.email).collection("myData").doc(array[index].id).update({task})
       setedit(false)
-  }else{ setAllTask([...allTask,task])
+  }else
+  {db.collection("todoDatas").doc(user.email).collection("myData").doc().set({task}).then(()=>{
+    setAllTask(previous=>[...previous,{task:task}])
+  })
     console.log(allTask)}
    }
 }
 const taskdelete=(element)=>{
+  db.collection("todoDatas").doc(user.email).collection("myData").doc(element.id).delete();
 setAllTask(allTask.filter(item=>item!==element))
 }
 const onEdit=(element)=>{
   setedit(true)
   inputRef.current.focus()
-  setTask(element)
-  index= allTask.findIndex(item=>item===element)
+  setTask(element.task)
+  index= allTask.findIndex(item=>item.task===element.task)
   
 
 }
@@ -76,7 +125,7 @@ const onEdit=(element)=>{
   <div style={{width:'70%',backgroundColor:'white',height:'200px',
 margin:'25px'}}>
 
-   <div style={{backgroundColor:'#127eb8',width:'100%',padding:'7px',textAlign:"center",color:'white'}}>
+   <div className='taskHead'>
        My Task List
    </div>
   
@@ -88,7 +137,7 @@ margin:'25px'}}>
    allTask.map((item)=>{
      return( <div style={{width:'100%',height:'50px',backgroundColor:'white',padding:'6px',border:'1px solid grey',borderTop:'none',display:'flex',justifyContent:'space-between'}}>
      <p>
-    {item}
+    {item.task}
      </p>
      <div style={{display:'flex', justifyContent:'space-between'}}><button onClick={()=>onEdit(item)} style={{backgroundColor:'white',border:'none '}}> <i className='fa fa-edit'>
        </i></button>
